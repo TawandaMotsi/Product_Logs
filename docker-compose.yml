@@ -19,7 +19,7 @@ services:
       retries: 5
 
   app:
-    image: product-logs:v1  # replace this with your actual image name
+    image: products_logs-app  # replace this with your actual image name
     container_name: springboot-app
     depends_on:
       postgres:

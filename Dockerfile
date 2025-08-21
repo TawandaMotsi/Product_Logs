@@ -1,33 +1,19 @@
 # ---------- Build Stage ----------
-FROM maven:3.9.3-eclipse-temurin-17-alpine AS build
+# Just acts as a placeholder to copy the locally built JAR
+FROM eclipse-temurin:17-jre-jammy AS build
 
 WORKDIR /app
 
-# Copy everything (including pom.xml, modules, mvnw, src, etc)
-COPY . .
-
-# Make Maven wrapper executable
-RUN chmod +x mvnw
-
-# Debug: check if MAVEN_CONFIG is set
-RUN env | grep MAVEN || echo "No MAVEN env variables set"
-
-# Unset MAVEN_CONFIG to avoid it being interpreted as a lifecycle phase
-ENV MAVEN_CONFIG=""
-
-# Download dependencies offline
-RUN ./mvnw dependency:go-offline -B
-
-# Build the entire project, skipping tests for speed
-RUN ./mvnw clean package -DskipTests -B
+# Copy the locally built JAR from the product module
+COPY product/target/*.jar app.jar
 
 # ---------- Runtime Stage ----------
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-# Copy the built jar from the build stage (adjust if multiple jars/modules)
-COPY --from=build /app/product/target/*.jar app.jar
+# Copy the JAR from the build stage
+COPY --from=build /app/app.jar app.jar
 
 EXPOSE 8080
 
